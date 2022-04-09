@@ -1,66 +1,96 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Facebook Login JavaScript Example</title>
-<meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
 </head>
+
 <body>
-<script>
 
-  function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
-    console.log('statusChangeCallback');
-    console.log(response);                   // The current login status of the person.
-    if (response.status === 'connected') {   // Logged into your webpage and Facebook.
-      testAPI();  
-    } else {                                 // Not logged into your webpage or we are unable to tell.
-      document.getElementById('status').innerHTML = 'Please log ' +
-        'into this webpage.';
-    }
-  }
+    <script>
+        var config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 200 }
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create
+            }
+        };
+
+        var game = new Phaser.Game(config);
+
+        function preload() {
+            this.load.setBaseURL('http://labs.phaser.io');
+
+            this.load.image('sky', 'assets/skies/space3.png');
+            this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+            this.load.image('red', 'assets/particles/red.png');
+        }
+
+        function create() {
+            this.add.image(400, 300, 'sky');
+
+            var particles = this.add.particles('red');
+
+            var emitter = particles.createEmitter({
+                speed: 100,
+                scale: { start: 1, end: 0 },
+                blendMode: 'ADD'
+            });
+
+            var logo = this.physics.add.image(400, 100, 'logo');
+
+            logo.setVelocity(100, 200);
+            logo.setBounce(1, 1);
+            logo.setCollideWorldBounds(true);
+
+            emitter.startFollow(logo);
+        }
+    </script>
+
+    <script>
+        window.app_id = '1031220284494693';
+        window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+            if (!errorMsg) return;
+            var summary = JSON.stringify({ e: errorMsg, url: url, line: lineNumber });
+            alert("Error occured: " + summary);//or any message
+            return false;
+        }
+
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '1031220284494693',
+                autoLogAppEvents: true,
+                xfbml: true,
+                version: 'v13.0'
+            });
+
+            FB.getLoginStatus(function (response) {
+                console.log(`FB.getLoginStatus() returned: ${response.status}`);
+                if (response.status === 'connected') {
+                    var uid = response.authResponse.userID;
+                    var accessToken = response.authResponse.accessToken;
+                } else {
+                    FB.login(function(response) {
+                        // handle the response
+                    }, {
+                    scope: 'public_profile,email', 
+                    return_scopes: true
+                });
+                }
+            });
+        };
+    </script>
+    <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
 
 
-  function checkLoginState() {               // Called when a person is finished with the Login Button.
-    FB.getLoginStatus(function(response) {   // See the onlogin handler
-      statusChangeCallback(response);
-    });
-  }
-
-
-  window.fbAsyncInit = function() {
-    FB.init({
-      appId      : '1031220284494693',
-      cookie     : true,                     // Enable cookies to allow the server to access the session.
-      xfbml      : true,                     // Parse social plugins on this webpage.
-      version    : 'v13.0'           // Use this Graph API version for this call.
-    });
-
-
-    FB.getLoginStatus(function(response) {   // Called after the JS SDK has been initialized.
-      statusChangeCallback(response);        // Returns the login status.
-    });
-  };
- 
-  function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
-    console.log('Welcome!  Fetching your information.... ');
-    FB.api('/me', function(response) {
-      console.log('Successful login for: ' + response.name);
-      document.getElementById('status').innerHTML =
-        'Thanks for logging in, ' + response.name + '!';
-    });
-  }
-
-</script>
-
-
-<!-- The JS SDK Login Button -->
-
-<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-</fb:login-button>
-
-<div id="status">
-</div>
-
-<!-- Load the JS SDK asynchronously -->
-<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 </body>
+
 </html>
